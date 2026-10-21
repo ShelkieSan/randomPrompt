@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Prompts">
+<title>Prompt Randomizer</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d1b18;--muted:#7a746b;--line:#e4dfd6;--accent:#d9572b;--lock:#2b6cd9}
+@media (prefers-color-scheme:dark){:root{--bg:#141311;--card:#1f1d1a;--ink:#f1ede6;--muted:#9a938a;--line:#33302b;--accent:#f07045;--lock:#5b93f0}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 0 8px}
+h1{font-size:22px;margin:0}
+.btn{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;background:var(--line);color:var(--ink)}
+.prompt{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin:8px 0 16px;text-align:center}
+.prompt p{font-size:24px;font-weight:700;margin:0 0 12px;min-height:34px}
+.slots{display:flex;flex-direction:column;gap:8px}
+.slot{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.slot .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.slot .val{font-weight:600}
+.slot .grow{flex:1;min-width:0}
+.lockbtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;font-size:20px}
+.lockbtn.on{background:var(--lock);border-color:var(--lock)}
+.usebtn{width:28px;height:28px;flex:none;border-radius:8px;border:2px solid var(--muted);background:transparent;color:#fff;font-weight:700;font-size:15px}
+.usebtn.on{background:var(--accent);border-color:var(--accent)}
+.slot.off{opacity:.5}
+.go{width:100%;margin:16px 0;padding:18px;font-size:19px;background:var(--accent);color:#fff;border-radius:16px}
+.small{font-size:14px;padding:8px 12px}
+.list{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
+.list h3{margin:0;font-size:17px;flex:1}
+.row{display:flex;gap:8px;align-items:center}
+.items{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:5px 10px;font-size:14px}
+.chip b{margin-left:6px;color:var(--muted);font-weight:400}
+input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.hidden{display:none}
+.muted{color:var(--muted);font-size:14px}
+.hist div{padding:6px 0;border-bottom:1px solid var(--line);font-size:15px}
+</style>
+</head>
+<body>
+<header><h1>Prompts</h1><button class="btn small" id="toggleEdit">Edit lists</button></header>
+
+<section id="play">
+  <div class="prompt"><p id="promptText">Tap Shuffle</p><button class="btn small" id="copy">Copy</button></div>
+  <div class="slots" id="slots"></div>
+  <button class="btn go" id="shuffle">Shuffle</button>
+  <div class="muted">Lock a slot 🔒 to keep it while the others change.</div>
+  <h3>Recent</h3>
+  <div class="hist" id="hist"></div>
+</section>
+
+<section id="edit" class="hidden">
+  <div id="lists"></div>
+  <div class="row"><input id="newList" placeholder="New list (e.g. Colour)"><button class="btn" id="addList">Add</button></div>
+  <p class="muted">Lists run top to bottom in the prompt. Tap × on an item to remove it.</p>
+</section>
+
+<script>
+const KEY='promptRandomizer.v1';
+const defaults={lists:[
+ {name:'Adjective',items:['quiet','broken','glowing','ancient','tiny','tangled']},
+ {name:'Noun',items:['lighthouse','teacup','fox','city','hand','forest']},
+ {name:'Technique',items:['watercolor','charcoal','collage','ink wash','one-line drawing','pixel art']}
+],current:[],locked:[],history:[]};
+let s; try{s=JSON.parse(localStorage.getItem(KEY))||defaults}catch(e){s=defaults}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}};
+const $=id=>document.getElementById(id);
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:'';
+const text=()=>s.current.filter((v,i)=>v&&s.lists[i]&&!s.lists[i].off).join(' + ');
+
+function shuffle(){
+  s.lists.forEach((l,i)=>{ if(l.off) return; if(!s.locked[i]||!s.current[i]){
+    let v=pick(l.items); if(l.items.length>1) while(v===s.current[i]) v=pick(l.items);
+    s.current[i]=v; }});
+  if(text()){s.history.unshift(text()); s.history=s.history.slice(0,15);}
+  save(); render();
+}
+function render(){
+  $('promptText').textContent=text()||'Tap Shuffle';
+  $('slots').innerHTML=s.lists.map((l,i)=>`<div class="slot ${l.off?'off':''}"><button class="usebtn ${l.off?'':'on'}" data-use="${i}" aria-label="Include in shuffle">${l.off?'':'✓'}</button><div class="grow"><div class="lbl">${esc(l.name)}${l.off?' · off':''}</div><div class="val">${l.off?'—':esc(s.current[i]||'—')}</div></div>${l.off?'':`<button class="lockbtn ${s.locked[i]?'on':''}" data-lock="${i}">${s.locked[i]?'🔒':'🔓'}</button>`}</div>`).join('');
+  $('hist').innerHTML=s.history.map(h=>`<div>${esc(h)}</div>`).join('')||'<div class="muted">Nothing yet</div>';
+  $('lists').innerHTML=s.lists.map((l,i)=>`<div class="list"><div class="row"><h3>${esc(l.name)}</h3>
+   <button class="btn small" data-use="${i}">${l.off?'Off':'On'}</button><button class="btn small" data-up="${i}">↑</button><button class="btn small" data-del="${i}">Delete</button></div>
+   <div class="items">${l.items.map((it,j)=>`<span class="chip">${esc(it)}<b data-rm="${i},${j}">×</b></span>`).join('')||'<span class="muted">No items yet</span>'}</div>
+   <div class="row"><input data-in="${i}" placeholder="Add to ${esc(l.name)}"><button class="btn" data-add="${i}">Add</button></div></div>`).join('');
+}
+function addItem(i){const inp=document.querySelector(`[data-in="${i}"]`);
+  inp.value.split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{if(!s.lists[i].items.includes(v))s.lists[i].items.push(v)});
+  save();render();document.querySelector(`[data-in="${i}"]`).focus();}
+function move(arr,i){[arr[i-1],arr[i]]=[arr[i],arr[i-1]]}
+
+document.addEventListener('click',e=>{const d=e.target.dataset;
+  if(d.use!==undefined){const l=s.lists[d.use];l.off=!l.off;if(!l.off&&!s.current[d.use])s.current[d.use]=pick(l.items);save();render();}
+  if(d.lock!==undefined){s.locked[d.lock]=!s.locked[d.lock];save();render();}
+  if(d.add!==undefined)addItem(+d.add);
+  if(d.rm){const[i,j]=d.rm.split(',').map(Number);s.lists[i].items.splice(j,1);save();render();}
+  if(d.del!==undefined&&confirm(`Delete the list "${s.lists[d.del].name}"?`)){[s.lists,s.current,s.locked].forEach(a=>a.splice(d.del,1));save();render();}
+  if(d.up!==undefined&&+d.up>0){[s.lists,s.current,s.locked].forEach(a=>move(a,+d.up));save();render();}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.in!==undefined)addItem(+e.target.dataset.in)});
+$('shuffle').onclick=shuffle;
+$('addList').onclick=()=>{const n=$('newList').value.trim();if(!n)return;s.lists.push({name:n,items:[]});$('newList').value='';save();render();};
+$('toggleEdit').onclick=()=>{const ed=$('edit').classList.toggle('hidden');$('play').classList.toggle('hidden',!ed);$('toggleEdit').textContent=ed?'Edit lists':'Done';};
+$('copy').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(text()).then(()=>{$('copy').textContent='Copied';setTimeout(()=>$('copy').textContent='Copy',1200)})};
+render();
+</script>
+</body>
+</html>
