@@ -4,59 +4,114 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Prompts">
-<title>Prompt Randomizer</title>
+<meta name="theme-color" content="#1a1620">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
+<title>Prompts</title>
 <style>
-:root{--bg:#f6f4ef;--card:#fff;--ink:#1d1b18;--muted:#7a746b;--line:#e4dfd6;--accent:#d9572b;--lock:#2b6cd9}
-@media (prefers-color-scheme:dark){:root{--bg:#141311;--card:#1f1d1a;--ink:#f1ede6;--muted:#9a938a;--line:#33302b;--accent:#f07045;--lock:#5b93f0}}
+:root{
+  --bg:#f4efe6;--card:#fffdf8;--ink:#1d1922;--muted:#857c74;--line:#e6dfd2;
+  --accent:#ef6a3d;--accent-2:#f59a4a;--lock:#3d6fe0;--hero:#1d1922;--hero-ink:#f6f0e4;
+  --serif:ui-serif,"New York",Georgia,serif;--sans:-apple-system,system-ui,sans-serif;
+  --shadow:0 1px 2px rgba(40,30,20,.06),0 6px 18px rgba(40,30,20,.07);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#131116;--card:#1e1b22;--ink:#f3eee6;--muted:#9a9199;--line:#2e2a33;
+  --hero:#26212d;--hero-ink:#f6f0e4;--lock:#6b93f2;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.35);
+}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
-header{display:flex;justify-content:space-between;align-items:center;padding:16px 0 8px}
-h1{font-size:22px;margin:0}
-.btn{border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;background:var(--line);color:var(--ink)}
-.prompt{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin:8px 0 16px;text-align:center}
-.prompt p{font-size:24px;font-weight:700;margin:0 0 12px;min-height:34px}
-.slots{display:flex;flex-direction:column;gap:8px}
-.slot{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
-.slot .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.slot .val{font-weight:600}
+html{background:var(--bg)}
+body{margin:0 auto;max-width:560px;color:var(--ink);font:16px/1.4 var(--sans);
+  padding:calc(env(safe-area-inset-top) + 8px) 16px calc(32px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;cursor:pointer}
+button:active{transform:scale(.96)}
+
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 2px 14px}
+h1{font:700 30px/1 var(--serif);margin:0;letter-spacing:-.01em}
+h2{font:600 13px var(--sans);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:28px 4px 10px}
+
+.btn{border:0;border-radius:999px;padding:9px 16px;font-weight:600;font-size:15px;background:var(--card);box-shadow:var(--shadow);transition:transform .1s}
+.btn.ghost{background:transparent;box-shadow:none;border:1px solid var(--line)}
+.btn.danger{color:#d5452f}
+
+/* hero prompt */
+.prompt{position:relative;overflow:hidden;background:var(--hero);color:var(--hero-ink);border-radius:26px;padding:26px 22px 18px;box-shadow:var(--shadow)}
+.prompt::before{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,var(--accent) 0%,transparent 70%);opacity:.35}
+.prompt .tag{font:600 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;opacity:.55}
+.prompt p{position:relative;font:600 28px/1.2 var(--serif);margin:10px 0 18px;min-height:68px;word-wrap:break-word}
+.prompt p .plus{color:var(--accent-2);font-family:var(--sans);font-weight:400;padding:0 .15em}
+.prompt .copy{position:relative;background:rgba(255,255,255,.1);color:var(--hero-ink);box-shadow:none;font-size:14px;padding:7px 14px}
+
+/* slots */
+.slots{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.slot{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:12px 12px 12px 14px;box-shadow:var(--shadow);transition:opacity .2s}
 .slot .grow{flex:1;min-width:0}
-.lockbtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;font-size:20px}
-.lockbtn.on{background:var(--lock);border-color:var(--lock)}
-.usebtn{width:28px;height:28px;flex:none;border-radius:8px;border:2px solid var(--muted);background:transparent;color:#fff;font-weight:700;font-size:15px}
+.slot .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.slot .val{font:600 19px var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot.off{opacity:.45}
+.slot.locked{box-shadow:inset 0 0 0 2px var(--lock),var(--shadow)}
+.roll{animation:roll .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes roll{0%{transform:translateY(60%);opacity:0}100%{transform:none;opacity:1}}
+
+.usebtn{width:26px;height:26px;flex:none;border-radius:8px;border:2px solid var(--line);background:transparent;color:#fff;font-weight:800;font-size:14px;line-height:1;padding:0}
 .usebtn.on{background:var(--accent);border-color:var(--accent)}
-.slot.off{opacity:.5}
-.go{width:100%;margin:16px 0;padding:18px;font-size:19px;background:var(--accent);color:#fff;border-radius:16px}
-.small{font-size:14px;padding:8px 12px}
-.list{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
-.list h3{margin:0;font-size:17px;flex:1}
+.lockbtn{width:44px;height:44px;flex:none;border-radius:14px;border:0;background:var(--bg);display:grid;place-items:center;padding:0;color:var(--muted)}
+.lockbtn.on{background:var(--lock);color:#fff}
+.lockbtn svg{width:20px;height:20px}
+
+.go{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:18px 0 8px;padding:18px;border:0;border-radius:20px;
+  font:700 19px var(--sans);color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 20px rgba(239,106,61,.35);transition:transform .1s}
+.go svg{width:22px;height:22px}
+.go.spin svg{animation:spin .4s ease}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hint{color:var(--muted);font-size:14px;text-align:center;margin:4px 0 0}
+
+.hist{background:var(--card);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.hist div{padding:12px 16px;border-bottom:1px solid var(--line);font:16px var(--serif)}
+.hist div:last-child{border-bottom:0}
+.hist .empty{color:var(--muted);font-family:var(--sans);font-size:14px}
+
+/* edit */
+.list{background:var(--card);border-radius:20px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.list.off{opacity:.6}
+.list h3{margin:0;font:600 20px var(--serif);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .row{display:flex;gap:8px;align-items:center}
-.items{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
-.chip{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:5px 10px;font-size:14px}
-.chip b{margin-left:6px;color:var(--muted);font-weight:400}
-input{flex:1;min-width:0;font:inherit;font-size:16px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.list .row .btn{padding:7px 12px;font-size:14px;box-shadow:none;background:var(--bg)}
+.list .row .btn.on{background:var(--accent);color:#fff}
+.items{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.chip{display:inline-flex;align-items:center;background:var(--bg);border-radius:999px;padding:6px 6px 6px 12px;font-size:15px}
+.chip b{display:grid;place-items:center;width:22px;height:22px;margin-left:4px;border-radius:50%;color:var(--muted);font-weight:400;cursor:pointer}
+.chip b:active{background:var(--line)}
+input{flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);outline:none}
+input:focus{border-color:var(--accent)}
+.newlist{background:var(--card);border-radius:20px;padding:14px;box-shadow:var(--shadow)}
+.newlist .btn{background:var(--ink);color:var(--bg);box-shadow:none}
+.list .row .btn.add{background:var(--ink);color:var(--bg)}
 .hidden{display:none}
-.muted{color:var(--muted);font-size:14px}
-.hist div{padding:6px 0;border-bottom:1px solid var(--line);font-size:15px}
+.muted{color:var(--muted);font-size:14px;margin:14px 4px}
 </style>
 </head>
 <body>
-<header><h1>Prompts</h1><button class="btn small" id="toggleEdit">Edit lists</button></header>
+<header><h1>Prompts</h1><button class="btn" id="toggleEdit">Edit lists</button></header>
 
 <section id="play">
-  <div class="prompt"><p id="promptText">Tap Shuffle</p><button class="btn small" id="copy">Copy</button></div>
+  <div class="prompt"><div class="tag">Your prompt</div><p id="promptText">Tap Shuffle</p><button class="btn copy" id="copy">Copy</button></div>
   <div class="slots" id="slots"></div>
-  <button class="btn go" id="shuffle">Shuffle</button>
-  <div class="muted">Lock a slot 🔒 to keep it while the others change.</div>
-  <h3>Recent</h3>
+  <button class="go" id="shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>Shuffle</button>
+  <p class="hint">Lock a slot to keep it. Untick it to leave it out.</p>
+  <h2>Recent</h2>
   <div class="hist" id="hist"></div>
 </section>
 
 <section id="edit" class="hidden">
   <div id="lists"></div>
-  <div class="row"><input id="newList" placeholder="New list (e.g. Colour)"><button class="btn" id="addList">Add</button></div>
-  <p class="muted">Lists run top to bottom in the prompt. Tap × on an item to remove it.</p>
+  <div class="newlist row"><input id="newList" placeholder="New list, e.g. Colour"><button class="btn" id="addList">Add list</button></div>
+  <p class="muted">Lists run top to bottom in the prompt. Add several items at once with commas.</p>
 </section>
 
 <script>
@@ -69,32 +124,44 @@ const defaults={lists:[
 let s; try{s=JSON.parse(localStorage.getItem(KEY))||defaults}catch(e){s=defaults}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}};
 const $=id=>document.getElementById(id);
-const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:'';
-const text=()=>s.current.filter((v,i)=>v&&s.lists[i]&&!s.lists[i].off).join(' + ');
+const active=()=>s.current.map((v,i)=>v&&s.lists[i]&&!s.lists[i].off?v:'').filter(Boolean);
+const text=()=>active().join(' + ');
+const lockIcon=on=>on
+ ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
+ :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>';
+let rolled=[];
 
 function shuffle(){
+  rolled=[];
   s.lists.forEach((l,i)=>{ if(l.off) return; if(!s.locked[i]||!s.current[i]){
     let v=pick(l.items); if(l.items.length>1) while(v===s.current[i]) v=pick(l.items);
-    s.current[i]=v; }});
+    s.current[i]=v; rolled[i]=true; }});
   if(text()){s.history.unshift(text()); s.history=s.history.slice(0,15);}
+  const b=$('shuffle'); b.classList.remove('spin'); void b.offsetWidth; b.classList.add('spin');
   save(); render();
 }
 function render(){
-  $('promptText').textContent=text()||'Tap Shuffle';
-  $('slots').innerHTML=s.lists.map((l,i)=>`<div class="slot ${l.off?'off':''}"><button class="usebtn ${l.off?'':'on'}" data-use="${i}" aria-label="Include in shuffle">${l.off?'':'✓'}</button><div class="grow"><div class="lbl">${esc(l.name)}${l.off?' · off':''}</div><div class="val">${l.off?'—':esc(s.current[i]||'—')}</div></div>${l.off?'':`<button class="lockbtn ${s.locked[i]?'on':''}" data-lock="${i}">${s.locked[i]?'🔒':'🔓'}</button>`}</div>`).join('');
-  $('hist').innerHTML=s.history.map(h=>`<div>${esc(h)}</div>`).join('')||'<div class="muted">Nothing yet</div>';
-  $('lists').innerHTML=s.lists.map((l,i)=>`<div class="list"><div class="row"><h3>${esc(l.name)}</h3>
-   <button class="btn small" data-use="${i}">${l.off?'Off':'On'}</button><button class="btn small" data-up="${i}">↑</button><button class="btn small" data-del="${i}">Delete</button></div>
-   <div class="items">${l.items.map((it,j)=>`<span class="chip">${esc(it)}<b data-rm="${i},${j}">×</b></span>`).join('')||'<span class="muted">No items yet</span>'}</div>
-   <div class="row"><input data-in="${i}" placeholder="Add to ${esc(l.name)}"><button class="btn" data-add="${i}">Add</button></div></div>`).join('');
+  const a=active();
+  $('promptText').innerHTML=a.length?a.map(esc).join('<span class="plus">+</span>'):'Tap Shuffle';
+  $('slots').innerHTML=s.lists.map((l,i)=>`<div class="slot ${l.off?'off':''} ${s.locked[i]&&!l.off?'locked':''}">
+    <button class="usebtn ${l.off?'':'on'}" data-use="${i}" aria-label="Include ${esc(l.name)}">${l.off?'':'✓'}</button>
+    <div class="grow"><div class="lbl">${esc(l.name)}${l.off?' · off':''}</div><div class="val ${rolled[i]?'roll':''}">${l.off?'—':esc(s.current[i]||'—')}</div></div>
+    ${l.off?'':`<button class="lockbtn ${s.locked[i]?'on':''}" data-lock="${i}" aria-label="Lock">${lockIcon(s.locked[i])}</button>`}</div>`).join('');
+  rolled=[];
+  $('hist').innerHTML=s.history.map(h=>`<div>${esc(h)}</div>`).join('')||'<div class="empty">Nothing yet</div>';
+  $('lists').innerHTML=s.lists.map((l,i)=>`<div class="list ${l.off?'off':''}"><div class="row"><h3>${esc(l.name)}</h3>
+   <button class="btn ${l.off?'':'on'}" data-use="${i}">${l.off?'Off':'On'}</button><button class="btn" data-up="${i}" aria-label="Move up">↑</button><button class="btn danger" data-del="${i}">Delete</button></div>
+   <div class="items">${l.items.map((it,j)=>`<span class="chip">${esc(it)}<b data-rm="${i},${j}">×</b></span>`).join('')||'<span class="muted" style="margin:0">No items yet</span>'}</div>
+   <div class="row"><input data-in="${i}" placeholder="Add to ${esc(l.name)}"><button class="btn add" data-add="${i}">Add</button></div></div>`).join('');
 }
 function addItem(i){const inp=document.querySelector(`[data-in="${i}"]`);
   inp.value.split(',').map(v=>v.trim()).filter(Boolean).forEach(v=>{if(!s.lists[i].items.includes(v))s.lists[i].items.push(v)});
   save();render();document.querySelector(`[data-in="${i}"]`).focus();}
 function move(arr,i){[arr[i-1],arr[i]]=[arr[i],arr[i-1]]}
 
-document.addEventListener('click',e=>{const d=e.target.dataset;
+document.addEventListener('click',e=>{const t=e.target.closest('[data-use],[data-lock],[data-add],[data-rm],[data-del],[data-up]');if(!t)return;const d=t.dataset;
   if(d.use!==undefined){const l=s.lists[d.use];l.off=!l.off;if(!l.off&&!s.current[d.use])s.current[d.use]=pick(l.items);save();render();}
   if(d.lock!==undefined){s.locked[d.lock]=!s.locked[d.lock];save();render();}
   if(d.add!==undefined)addItem(+d.add);
@@ -102,11 +169,11 @@ document.addEventListener('click',e=>{const d=e.target.dataset;
   if(d.del!==undefined&&confirm(`Delete the list "${s.lists[d.del].name}"?`)){[s.lists,s.current,s.locked].forEach(a=>a.splice(d.del,1));save();render();}
   if(d.up!==undefined&&+d.up>0){[s.lists,s.current,s.locked].forEach(a=>move(a,+d.up));save();render();}
 });
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.in!==undefined)addItem(+e.target.dataset.in)});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.dataset.in!==undefined)addItem(+e.target.dataset.in);if(e.target.id==='newList')$('addList').click();});
 $('shuffle').onclick=shuffle;
 $('addList').onclick=()=>{const n=$('newList').value.trim();if(!n)return;s.lists.push({name:n,items:[]});$('newList').value='';save();render();};
-$('toggleEdit').onclick=()=>{const ed=$('edit').classList.toggle('hidden');$('play').classList.toggle('hidden',!ed);$('toggleEdit').textContent=ed?'Edit lists':'Done';};
-$('copy').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(text()).then(()=>{$('copy').textContent='Copied';setTimeout(()=>$('copy').textContent='Copy',1200)})};
+$('toggleEdit').onclick=()=>{const ed=$('edit').classList.toggle('hidden');$('play').classList.toggle('hidden',!ed);$('toggleEdit').textContent=ed?'Edit lists':'Done';window.scrollTo(0,0);};
+$('copy').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(text()).then(()=>{$('copy').textContent='Copied ✓';setTimeout(()=>$('copy').textContent='Copy',1200)})};
 render();
 </script>
 </body>
